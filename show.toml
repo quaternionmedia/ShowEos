@@ -1,0 +1,9 @@
+# ShowRunner config for this workspace. ShowOSC is replaced by ShowEOS (which owns /osc).
+[plugins]
+disabled = ["ShowOscPlugin"]
+
+[plugins.showosc]
+eos_user = 99  # test server only; remove for the Eos default user
+[[plugins.showosc.connections]]
+name = "eos"
+ports = [{ name = "tcp", direction = "out", address = "192.168.1.141", port = 3032, protocol = "tcp" }]
