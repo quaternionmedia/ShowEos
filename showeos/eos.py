@@ -24,6 +24,22 @@ def fire_cue(cue_list: int, cue: str) -> tuple[str, None]:
     return f'/eos/cue/{cue_list}/{cue}/fire', None
 
 
+def get_cue(cue_list: int, cue: str) -> tuple[str, None]:
+    """Ask whether a cue exists; reply /eos/out/get/cue/<list>/<cue>/0/list/... (none = no such cue)."""
+    return f'/eos/get/cue/{cue_list}/{cue}', None
+
+
+def record_cue(cue: str, label: str) -> tuple[str, str]:
+    """Record a NEW cue (list 1). Eos overwrites an existing number, so check get_cue first."""
+    text = f'Record Cue {cue} Label {label} Enter' if label else f'Record Cue {cue} Enter'
+    return '/eos/newcmd', text
+
+
+def set_cue_label(cue: str, label: str) -> tuple[str, str]:
+    """Rename an existing cue (list 1): /eos/set/cue/<list>/<number>/label. Doc-sourced, not run on Offline Eos yet."""
+    return f'/eos/set/cue/1/{cue}/label', label
+
+
 def command(text: str) -> tuple[str, str]:
     """Send command-line text. Include 'Enter' to run it."""
     return '/eos/cmd', text
@@ -81,6 +97,7 @@ class EosState:
     pending: dict[str, str] = field(default_factory=dict)
     previous: dict[str, str] = field(default_factory=dict)
     channels: str = ''
+    cues: dict[str, str] = field(default_factory=dict)  # list 1 cue number -> name, from get_cue replies
     locked: bool = False
     latency_ms: float | None = None
 
@@ -101,6 +118,12 @@ class EosState:
             self.pending = parse_cue_text(str(first or ''))
         elif address == '/eos/out/previous/cue/text':
             self.previous = parse_cue_text(str(first or ''))
+        elif address.startswith('/eos/out/get/cue/1/') and args:
+            # Only the cue-properties reply (.../0/list/...) has the name at args[2]. An absent cue
+            # replies with no args; fx/links/actions sub-replies have no name.
+            parts = address.split('/')  # ['', 'eos', 'out', 'get', 'cue', '1', <number>, '0', 'list', ...]
+            if parts[7:9] == ['0', 'list'] and len(args) > 2:
+                self.cues[parts[6]] = str(args[2])
         elif address == '/eos/out/active/chan':
             self.channels = str(first or '')
         elif address == '/eos/out/event/locked':

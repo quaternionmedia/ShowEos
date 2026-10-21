@@ -116,3 +116,35 @@ def test_user_setting_must_be_positive():
     assert EosOscSettings().eos_user is None
     with pytest.raises(ValidationError):
         EosOscSettings(eos_user=0)
+
+
+def test_record_and_get_cue_addresses():
+    assert eos.get_cue(1, '13.1') == ('/eos/get/cue/1/13.1', None)
+    assert eos.record_cue('902', 'probe') == ('/eos/newcmd', 'Record Cue 902 Label probe Enter')
+    assert eos.record_cue('902', '') == ('/eos/newcmd', 'Record Cue 902 Enter')
+
+
+def test_state_collects_list1_cue_names_but_not_count():
+    st = eos.EosState()
+    st.update('/eos/out/get/cue/1/91/0/list/0/31', [-1, 'uid', 'but darker', 20000])
+    st.update('/eos/out/get/cue/1/13.1/0/list/0/31', [-1, 'uid', 'cold summer'])
+    st.update('/eos/out/get/cue/1/count', [45])
+    assert st.cues == {'91': 'but darker', '13.1': 'cold summer'}
+
+
+def test_set_cue_label_address():
+    assert eos.set_cue_label('91', 'but darker') == ('/eos/set/cue/1/91/label', 'but darker')
+
+
+def test_state_absent_cue_reply_is_not_an_existing_cue():
+    st = eos.EosState()
+    st.update('/eos/out/get/cue/1/905', [])  # Eos answers an absent cue with no arguments
+    assert st.cues == {}
+
+
+def test_state_cue_name_only_from_properties_reply():
+    st = eos.EosState()
+    st.update('/eos/out/get/cue/1/91/0/fx/list/0/2', [-1, 'uid'])
+    st.update('/eos/out/get/cue/1/91/0/list/0/31', [-1, 'uid', 'but darker', 20000])
+    st.update('/eos/out/get/cue/1/91/0/links/list/0/2', [-1, 'uid'])
+    assert st.cues == {'91': 'but darker'}

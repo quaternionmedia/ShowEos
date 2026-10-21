@@ -8,6 +8,12 @@ class EosOscPage(OscPage):
     commands = OSC_COMMANDS + ['eos.key', 'eos.cue', 'eos.cmd']
     port_defaults = {'address': '127.0.0.1', 'port': 3032, 'protocol': 'tcp'}
 
+    def new_port(self, conn: dict, direction: str) -> dict:
+        p = super().new_port(conn, direction)
+        if direction == 'in':  # input is UDP only (the TCP default is for output); Eos feedback arrives on 8001
+            p.update(protocol='udp', port=8001, address='0.0.0.0')
+        return p
+
     def test_out(self, m) -> None:
         conn = m.connection or self.manager.default_output()
         if not conn:

@@ -49,6 +49,19 @@ def plan(cues: list[LightCue]) -> list[EosCue]:
     return out
 
 
+def cue_status(number: str, known: dict[str, str], pushed: set[str], checked_at: float | None, now: float,
+               wait: float = 2.0) -> str:
+    """'exists' | 'pushed' | 'unchecked' | 'checking' | 'free'. Only 'free' may be recorded."""
+    if number in known:
+        return 'exists'
+    if number in pushed:
+        return 'pushed'
+    if checked_at is None:
+        return 'unchecked'
+    # shortcut: 'free' = no get reply within 2 s; upgrade to a real reply wait if Eos runs slow
+    return 'free' if now - checked_at >= wait else 'checking'
+
+
 def lights_cues(show_id: int) -> list[LightCue]:
     """All cues of the show's cue lists (the reader; the mapping is in ``plan``)."""
     with get_db().session() as s:

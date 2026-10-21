@@ -80,3 +80,35 @@ Verified by probe against the live Offline Eos; show "LittleWomen", list 1 has 4
 - `Label <name> Enter` renames the active cue (91), never the typed one. Tested: 1/91 renamed to
   `probe` and restored to `but darker`. 1/97 was not changed.
 - Eos/OSC ways to select cue 1/97 without the prefix are not found yet. Re-check on a clean desk.
+
+## Record a new cue (verified on users 1 and 99, Offline Eos 3.3.9.25)
+
+- `/eos/newcmd` `Record Cue 904 Label probe Enter` creates cue 1/904 named 'probe' (verified). Echo
+  `LIVE: Cue 904 : Record Cue 904 Label probe #`. The same without `Label ...` makes an empty name.
+- Record over an existing number overwrites it. The push therefore sends only numbers that a
+  `/eos/get/cue/1/<n>` reply did not report within 2 s (`showeos/cues.py` `cue_status`).
+- Before each record the push sends `Clear Enter` on the same socket.
+- Delete: `Delete Cue 904 Enter` answers `Please Confirm` (flag 1); a second `Enter` deletes it.
+  Used to clean up probe cues 901, 902, 903, 904. Count back to 45.
+- Probe side effect: user 1's active cue moved from 91 to 700 ('stormy thoughts'). Not restored.
+- User 99's command line on this desk kept `Record Cue 91 ...` residue. `Clear Enter` did not clear
+  it, and no `/eos/out/user/99/cmd` reply came back for `Clear Enter`. Recording as user 99 failed
+  with the `Cue 91` prefix, so the push cannot yet be trusted on the 99 socket.
+- The user's old template had `p{cue.page}`. ShowRunner's Cue has no page field, so the label is
+  `name` only.
+
+## Rename an existing cue (update: doc-sourced, not yet run)
+
+- ETC OSC Dictionary (Eos Online Help, OSC Set): `/eos/set/cue/<list>/<number>/label` with a string
+  argument. The earlier `/eos/cue/1/91/label` probe had no effect and is a different address.
+- `showeos/eos.py` `set_cue_label(cue, label)` sends it. The push renames only numbers that already
+  exist and whose name differs. It never records over them.
+- VERIFIED on Offline Eos (user 99): `/eos/set/cue/1/905/label` 'push a' -> 'push a2' renamed the
+  cue; the get reply confirmed the name. Cue 1/91 was renamed by mistake to 'should not change' and
+  restored to 'but darker' with the same address (verified by get reply).
+- Absent cue: `/eos/get/cue/1/<n>` gets a reply `/eos/out/get/cue/1/<n> []` with NO args. Existing:
+  `/eos/out/get/cue/1/<n>/0/list/0/31 [-1, uid, name, ...]`; name is args[2]. The fx, links and
+  actions sub-replies also have args and no name.
+
+- Push end to end (user 99): check -> 905 'push a' renamed, 906 'push b' untouched, 907 'push c'
+  recorded (`Record Cue 907 Label push c #`). Throwaway cues deleted; count back to 45.

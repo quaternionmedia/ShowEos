@@ -58,7 +58,9 @@ Tests: `tests/test_eos.py` (address building, reply parsing, TCP framing against
 
 ## Limits
 
-- Cue push from Lights cues is not implemented. `showeos/cues.py` maps Lights cues to Eos cue
-  numbers (decimal numbers only), but Eos Record and Label syntax is not verified safe (see
-  `docs/eos-osc.md`).
+- Cue push (`/eos` page, "Push Lights cues"): **Check on Eos** queries each Lights cue number;
+  **Push new cues** records the free ones (`/eos/newcmd` `Record Cue <n> Label <name> Enter`) and
+  renames existing ones whose name differs (`/eos/set/cue/1/<n>/label`). Verified end to end on
+  Offline Eos (user 99). The browser buttons were not clicked, and the page was only checked with
+  no Lights cues. See `docs/eos-osc.md`.
 - Back and Stop/Back keys are not verified; the console has only GO.

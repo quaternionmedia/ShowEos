@@ -178,8 +178,9 @@ class EosOscManager(OscManager):
 
     def send_eos(self, message: str, value: Any = None) -> None:
         conn = self.default_output()
-        if not conn:
-            raise KeyError('no Eos connection configured')
+        if not conn:  # the loaded settings have no enabled Output port; saved row wins over show.toml
+            names = ', '.join(c.name for c in self.settings.connections) or 'none'
+            raise KeyError(f'no enabled Eos output port (connections: {names}); save an Output port on /osc')
         self.send(conn, message, value)
 
     def press(self, name: str) -> None:

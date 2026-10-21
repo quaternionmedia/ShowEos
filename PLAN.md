@@ -94,8 +94,8 @@
 - [x] `eos.py` helpers and tests.
 - [x] Console state screen `/eos`.
 - [x] Touch button designer and runner `/eos/buttons`, with DB storage.
-- [ ] Cue push from `Lights` cues. Preview and push.
-- [ ] Tests for new logic (address building, reply parsing, button model round-trip, cue mapping).
+- [x] Cue push from `Lights` cues. Preview and push.
+- [x] Tests for new logic (address building, reply parsing, button model round-trip, cue mapping).
 - [x] README snippet.
 
 ## Verification
